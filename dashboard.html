@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Boutique Ustensile (Temps Réel)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="sidebar-brand">
+                    <div class="logo-icon">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-title">Boutique</span>
+                        <span class="logo-highlight">Ustensile</span>
+                    </div>
+                </a>
+                <span class="admin-badge">Admin Pro</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="sidebar-link active">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Commandes Direct</span>
+                    <span class="live-indicator">LIVE</span>
+                </a>
+                <a href="index.html" target="_blank" class="sidebar-link">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Voir la Boutique</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square external-icon"></i>
+                </a>
+            </nav>
+
+            <div class="sidebar-widget">
+                <div class="live-status-box">
+                    <div class="pulse-dot"></div>
+                    <div>
+                        <strong>Synchronisation Active</strong>
+                        <small>Écoute des commandes en temps réel</small>
+                    </div>
+                </div>
+                <div class="sound-toggle-box">
+                    <span>Son d'alerte :</span>
+                    <button id="toggle-sound-btn" class="btn-sound active" title="Activer / Couper le son d'alerte">
+                        <i class="fa-solid fa-volume-high"></i> Activé
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="admin-profile">
+                    <div class="avatar"><i class="fa-solid fa-user-shield"></i></div>
+                    <div class="info">
+                        <strong>Responsable Ventes</strong>
+                        <small>WhatsApp : +212 629-792377</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h1>Tableau de Bord des Commandes</h1>
+                    <p>Suivi en direct des ventes et gestion des expéditions</p>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="realtime-clock" id="live-clock">--:--:--</div>
+                    <button class="btn btn-primary" id="btn-add-manual-order">
+                        <i class="fa-solid fa-plus"></i> Nouvelle Commande
+                    </button>
+                    <button class="btn btn-outline" id="btn-simulate-order" title="Simuler l'arrivée d'une commande client en direct">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Simuler un Client
+                    </button>
+                </div>
+            </header>
+
+            <!-- Metrics KPI Cards -->
+            <section class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Chiffre d'Affaires</span>
+                        <div class="kpi-icon bg-blue"><i class="fa-solid fa-sack-dollar"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-revenue">0 DH</div>
+                    <div class="kpi-subtext"><span class="badge-success">+18%</span> Total des commandes validées</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Total Commandes</span>
+                        <div class="kpi-icon bg-indigo"><i class="fa-solid fa-box-archive"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-total-orders">0</div>
+                    <div class="kpi-subtext">Depuis le lancement de la page</div>
+                </div>
+
+                <div class="kpi-card alert-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">À Confirmer</span>
+                        <div class="kpi-icon bg-amber"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-pending-orders">0</div>
+                    <div class="kpi-subtext text-warning">Appel ou WhatsApp requis</div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">Livrées avec Succès</span>
+                        <div class="kpi-icon bg-green"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-delivered-orders">0</div>
+                    <div class="kpi-subtext text-success">Paiement encaissé</div>
+                </div>
+            </section>
+
+            <!-- Table & Filters Section -->
+            <section class="table-section">
+                <div class="table-controls">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="order-search" placeholder="Rechercher par nom, téléphone, ville...">
+                    </div>
+
+                    <div class="filter-actions">
+                        <select id="status-filter" class="custom-select">
+                            <option value="ALL">Tous les statuts</option>
+                            <option value="En attente">🟡 En attente</option>
+                            <option value="Confirmée">🔵 Confirmée</option>
+                            <option value="Expédiée">🟣 Expédiée</option>
+                            <option value="Livrée">🟢 Livrée</option>
+                            <option value="Annulée">🔴 Annulée</option>
+                        </select>
+
+                        <button class="btn btn-outline" id="btn-export-csv" title="Exporter les commandes en fichier CSV">
+                            <i class="fa-solid fa-file-csv"></i> Exporter CSV
+                        </button>
+
+                        <button class="btn btn-danger-soft" id="btn-clear-orders" title="Réinitialiser l'historique">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Orders Table -->
+                <div class="orders-table-wrapper">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Réf / Date</th>
+                                <th>Client</th>
+                                <th>Téléphone & Contact</th>
+                                <th>Ville</th>
+                                <th>Pack Commandé</th>
+                                <th>Montant</th>
+                                <th>Statut de livraison</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <i class="fa-solid fa-inbox"></i>
+                        <h3>Aucune commande trouvée</h3>
+                        <p>Les nouvelles commandes passées sur la landing page apparaîtront ici automatiquement.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal : Ajouter Commande Manuelle -->
+    <div class="modal-overlay" id="order-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-plus-circle"></i> Ajouter une Commande</h3>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <form id="manual-order-form" class="modal-form">
+                <div class="modal-form-group">
+                    <label>Nom complet du client *</label>
+                    <input type="text" id="m-name" required placeholder="Ex: Youssef Bennani">
+                </div>
+                <div class="modal-form-group">
+                    <label>Numéro de téléphone WhatsApp *</label>
+                    <input type="tel" id="m-phone" required placeholder="Ex: 06 61 23 45 67">
+                </div>
+                <div class="modal-form-group">
+                    <label>Ville de destination *</label>
+                    <input type="text" id="m-city" required placeholder="Ex: Tanger">
+                </div>
+                <div class="modal-form-group">
+                    <label>Pack choisi *</label>
+                    <select id="m-pack">
+                        <option value="Pack Duo (349 DH)">Pack Duo - 349 DH (Recommandé)</option>
+                        <option value="Pack Solo (199 DH)">Pack Solo - 199 DH</option>
+                        <option value="Pack Famille (480 DH)">Pack Famille - 480 DH</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="modal-cancel-btn">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer la commande</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Popup -->
+    <div class="toast-notification" id="toast-notif">
+        <div class="toast-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="toast-content">
+            <strong id="toast-title">Nouvelle Commande !</strong>
+            <p id="toast-message">Un client vient de passer commande.</p>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
