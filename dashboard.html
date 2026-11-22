@@ -47,14 +47,22 @@
                 <div class="live-status-box">
                     <div class="pulse-dot"></div>
                     <div>
-                        <strong>Synchronisation Active</strong>
-                        <small>Écoute des commandes en temps réel</small>
+                        <strong id="cloud-status-title">Cloud Connecté</strong>
+                        <small id="cloud-status-sub">Mobiles & PC synchronisés</small>
                     </div>
                 </div>
                 <div class="sound-toggle-box">
                     <span>Son d'alerte :</span>
                     <button id="toggle-sound-btn" class="btn-sound active" title="Activer / Couper le son d'alerte">
                         <i class="fa-solid fa-volume-high"></i> Activé
+                    </button>
+                </div>
+                <div class="extra-tools-box" style="margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <button id="btn-request-notif" class="btn-sidebar-tool">
+                        <i class="fa-solid fa-bell"></i> Activer Notifications Push
+                    </button>
+                    <button id="btn-mobile-alerts" class="btn-sidebar-tool highlight">
+                        <i class="fa-solid fa-mobile-screen-button"></i> Alertes sur Smartphone
                     </button>
                 </div>
             </div>
@@ -220,6 +228,33 @@
                     <button type="submit" class="btn btn-primary">Enregistrer la commande</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal : Alertes Smartphone -->
+    <div class="modal-overlay" id="mobile-alerts-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-mobile-screen-button"></i> Alertes Push sur Téléphone</h3>
+                <button class="modal-close" id="mobile-alerts-close-btn">&times;</button>
+            </div>
+            <div class="modal-body" style="font-size: 0.92rem; line-height: 1.6; color: #475569;">
+                <p style="margin-bottom: 1rem;">Vous pouvez recevoir une <strong>sonnerie et une notification sur votre téléphone</strong> à chaque nouvelle commande (même quand votre ordinateur est éteint) :</p>
+                
+                <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+                    <li>Téléchargez l'application gratuite <strong>ntfy</strong> sur votre smartphone (Android sur <em>Play Store</em> ou iPhone sur <em>App Store</em>).</li>
+                    <li>Ouvrez l'application et appuyez sur <strong>« + » (S'abonner à un sujet)</strong>.</li>
+                    <li>Entrez le nom du sujet : <br><code style="background: #e2e8f0; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 700; color: #1d4ed8;">boutique_ustensile_orders_212629792377</code></li>
+                </ol>
+
+                <div style="background: #dbeafe; padding: 0.85rem; border-radius: 8px; font-size: 0.85rem; color: #1e40af; margin-bottom: 1rem;">
+                    <i class="fa-solid fa-circle-check"></i> C'est tout ! Dès qu'un client passe commande depuis son mobile ou son PC, votre téléphone sonnera instantanément.
+                </div>
+
+                <a href="https://ntfy.sh/boutique_ustensile_orders_212629792377" target="_blank" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Ouvrir le flux d'alertes en direct
+                </a>
+            </div>
         </div>
     </div>
 

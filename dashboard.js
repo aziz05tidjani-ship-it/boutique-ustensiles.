@@ -427,24 +427,156 @@ document.addEventListener('DOMContentLoaded', () => {
         addNewOrder(simulatedOrder, true);
     });
 
-    // 9. Real-Time Listener across Browser Tabs
-    // Method A: BroadcastChannel (modern, instant)
+    // 9. Real-Time Listener across Browser Tabs (Local)
     if ('BroadcastChannel' in window) {
         const channel = new BroadcastChannel('boutique_orders_channel');
         channel.onmessage = (event) => {
             if (event.data && event.data.type === 'NEW_ORDER') {
-                renderDashboard();
-                playAlertSound();
-                showToast('🚨 Commande en Direct !', `${event.data.order.name} vient de commander (${event.data.order.city})`);
+                const orderData = event.data.order;
+                const orders = getOrders();
+                if (!orders.some(o => o.id === orderData.id)) {
+                    addNewOrder(orderData, true);
+                }
             }
         };
     }
 
-    // Method B: window 'storage' event listener (cross-tab real-time sync)
     window.addEventListener('storage', (e) => {
         if (e.key === STORAGE_KEY) {
             renderDashboard();
         }
     });
 
+    // 10. REAL-TIME CLOUD SYNCHRONIZATION (CROSS-DEVICE: MOBILES & PC)
+    const CLOUD_TOPIC = 'boutique_ustensile_orders_212629792377';
+    const CLOUD_URL = `https://ntfy.sh/${CLOUD_TOPIC}`;
+
+    function handleIncomingCloudOrder(orderData) {
+        if (!orderData || !orderData.id) return;
+        const orders = getOrders();
+        // Check if already in list to avoid duplicates
+        const exists = orders.some(o => o.id === orderData.id);
+        if (!exists) {
+            addNewOrder(orderData, true);
+
+            // Native Browser Push Notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification('🎉 Nouvelle Commande (Mobile) !', {
+                        body: `${orderData.name} (${orderData.city}) - ${orderData.pack} (${orderData.price} DH)`,
+                        icon: 'images/product.jpg'
+                    });
+                } catch (e) {}
+            }
+        }
+    }
+
+    // A. SSE Live Stream (Instant < 200ms)
+    function startCloudSSE() {
+        try {
+            const eventSource = new EventSource(`${CLOUD_URL}/sse`);
+            
+            eventSource.onopen = () => {
+                const statusTitle = document.getElementById('cloud-status-title');
+                const statusSub = document.getElementById('cloud-status-sub');
+                if (statusTitle) statusTitle.textContent = 'Cloud Connecté 🟢';
+                if (statusSub) statusSub.textContent = 'Mobile & PC synchronisés';
+            };
+
+            eventSource.onmessage = (event) => {
+                try {
+                    const payload = JSON.parse(event.data);
+                    if (payload.event === 'message' && payload.message) {
+                        const orderData = JSON.parse(payload.message);
+                        handleIncomingCloudOrder(orderData);
+                    }
+                } catch (err) {
+                    console.warn('Erreur lecture commande cloud :', err);
+                }
+            };
+
+            eventSource.onerror = () => {
+                const statusTitle = document.getElementById('cloud-status-title');
+                if (statusTitle) statusTitle.textContent = 'Reconnexion Cloud...';
+            };
+        } catch (e) {
+            console.warn('SSE non supporté :', e);
+        }
+    }
+
+    // B. Initial Cloud Poll (Récupère les commandes passées depuis mobile pendant que le dashboard était fermé)
+    function fetchRecentCloudOrders() {
+        fetch(`${CLOUD_URL}/json?poll=1&since=48h`)
+            .then(res => res.text())
+            .then(text => {
+                if (!text) return;
+                const lines = text.trim().split('\n');
+                lines.forEach(line => {
+                    if (!line) return;
+                    try {
+                        const payload = JSON.parse(line);
+                        if (payload.event === 'message' && payload.message) {
+                            const orderData = JSON.parse(payload.message);
+                            handleIncomingCloudOrder(orderData);
+                        }
+                    } catch (e) {}
+                });
+            })
+            .catch(err => console.warn('Erreur polling initial cloud :', err));
+    }
+
+    startCloudSSE();
+    fetchRecentCloudOrders();
+
+    // 11. Audio Context Unlock on User Interaction (Requis sur navigateurs mobiles & récents)
+    const unlockAudio = () => {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            ctx.resume();
+        } catch (e) {}
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('touchstart', unlockAudio);
+    };
+    document.addEventListener('click', unlockAudio);
+    document.addEventListener('touchstart', unlockAudio);
+
+    // 12. Push Notification Permission Request
+    const btnRequestNotif = document.getElementById('btn-request-notif');
+    if (btnRequestNotif) {
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                btnRequestNotif.innerHTML = '<i class="fa-solid fa-check"></i> Notifications Actives';
+                btnRequestNotif.style.opacity = '0.7';
+            } else {
+                btnRequestNotif.addEventListener('click', () => {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            btnRequestNotif.innerHTML = '<i class="fa-solid fa-check"></i> Notifications Actives';
+                            showToast('Notifications activées', 'Vous recevrez des alertes bureau lors des commandes.');
+                        }
+                    });
+                });
+            }
+        } else {
+            btnRequestNotif.style.display = 'none';
+        }
+    }
+
+    // 13. Mobile Alerts Modal Handlers
+    const btnMobileAlerts = document.getElementById('btn-mobile-alerts');
+    const mobileAlertsModal = document.getElementById('mobile-alerts-modal');
+    const mobileAlertsCloseBtn = document.getElementById('mobile-alerts-close-btn');
+
+    if (btnMobileAlerts && mobileAlertsModal) {
+        btnMobileAlerts.addEventListener('click', () => {
+            mobileAlertsModal.classList.add('open');
+        });
+    }
+
+    if (mobileAlertsCloseBtn && mobileAlertsModal) {
+        mobileAlertsCloseBtn.addEventListener('click', () => {
+            mobileAlertsModal.classList.remove('open');
+        });
+    }
 });

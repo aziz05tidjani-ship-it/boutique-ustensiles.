@@ -162,20 +162,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 status: 'En attente'
             };
 
-            // 1. Save to LocalStorage for Real-Time Dashboard
+            // 1. Save to LocalStorage (for same device)
             try {
                 const STORAGE_KEY = 'boutique_ustensile_orders';
                 const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
                 existing.unshift(newOrder);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
 
-                // 2. Broadcast in Real-Time to any open Dashboard tab
+                // 2. Broadcast in Real-Time to any open Dashboard tab on same browser
                 if ('BroadcastChannel' in window) {
                     const channel = new BroadcastChannel('boutique_orders_channel');
                     channel.postMessage({ type: 'NEW_ORDER', order: newOrder });
                 }
             } catch (err) {
-                console.error('Erreur enregistrement commande :', err);
+                console.error('Erreur enregistrement commande locale :', err);
+            }
+
+            // 3. SYNCHRONISATION CLOUD EN TEMPS RÉEL (FONCTIONNE SUR TOUS LES APPAREILS MOBILES & PC)
+            const CLOUD_TOPIC = 'boutique_ustensile_orders_212629792377';
+            try {
+                fetch(`https://ntfy.sh/${CLOUD_TOPIC}`, {
+                    method: 'POST',
+                    headers: {
+                        'Title': `Nouvelle Commande: ${name} (${city})`,
+                        'Tags': 'shopping_cart,bell',
+                        'Priority': 'urgent'
+                    },
+                    body: JSON.stringify(newOrder)
+                }).catch(e => console.warn('Erreur notification cloud :', e));
+            } catch (cloudErr) {
+                console.warn('Erreur sync cloud :', cloudErr);
             }
 
             const whatsappNumber = '212629792377';
